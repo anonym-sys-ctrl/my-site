@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<title>8 Mart Təbriki</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(120deg,#ff5fa2,#ffc3a0,#ff6fd8,#ffb6e6,#ffa0c0,#ff9a9e);
+background-size:600% 600%;
+animation:bgmove 20s infinite alternate;
+overflow-x:hidden;
+}
+
+@keyframes bgmove{
+0%{background-position:0% 50%}
+100%{background-position:100% 50%}
+}
+
+.hero{
+text-align:center;
+color:white;
+padding:120px 20px;
+font-size:40px;
+font-weight:bold;
+text-shadow:0 0 15px rgba(0,0,0,0.4);
+}
+
+.card{
+background:white;
+margin:auto;
+margin-top:80px;
+max-width:540px;
+padding:50px;
+border-radius:25px;
+box-shadow:0 25px 70px rgba(0,0,0,0.4);
+animation:open 1s forwards;
+position:relative;
+z-index:10;
+}
+
+@keyframes open{
+0%{transform:scale(0)}
+80%{transform:scale(1.1)}
+100%{transform:scale(1)}
+}
+
+input,select{
+padding:14px;
+width:250px;
+border-radius:12px;
+border:1px solid #ccc;
+margin-top:10px;
+font-size:16px;
+}
+
+button{
+padding:14px 30px;
+margin-top:20px;
+border:none;
+background:#ff2f7a;
+color:white;
+border-radius:12px;
+cursor:pointer;
+font-size:17px;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.1);
+background:#ff0066;
+}
+
+#message{
+margin-top:30px;
+font-size:18px;
+line-height:1.8;
+min-height:200px;
+}
+
+/* məktublar */
+
+.letter{
+position:absolute;
+font-size:36px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.letter:hover{
+transform:scale(1.3);
+}
+
+/* popup */
+
+.popup{
+position:absolute;
+background:white;
+padding:12px;
+border-radius:10px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+animation:pop .4s;
+}
+
+@keyframes pop{
+from{transform:scale(.5);opacity:0}
+to{transform:scale(1);opacity:1}
+}
+
+/* ürəklər */
+
+.heart{
+position:fixed;
+animation:float 6s linear infinite;
+}
+
+@keyframes float{
+0%{transform:translateY(0);opacity:1}
+100%{transform:translateY(-900px);opacity:0}
+}
+
+/* güllər */
+
+.flower{
+position:fixed;
+top:-20px;
+font-size:20px;
+animation:fall linear infinite;
+}
+
+@keyframes fall{
+to{transform:translateY(110vh) rotate(360deg)}
+}
+
+/* mouse sparkle */
+
+.sparkle{
+position:fixed;
+pointer-events:none;
+font-size:14px;
+animation:spark 0.8s linear forwards;
+}
+
+@keyframes spark{
+0%{opacity:1; transform:scale(1);}
+100%{opacity:0; transform:scale(2);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="hero">
+🌸 8 Martın Mübarək 🌸
+</div>
+
+<div class="card">
+
+<p>Adını yaz:</p>
+
+<input type="text" id="name" placeholder="Adını yaz">
+
+<br>
+
+<select id="type">
+<option value="friend">Just Friend</option>
+<option value="classmate">Sinif yoldaşı</option>
+</select>
+
+<br>
+
+<button onclick="generate()">Təbriki göstər</button>
+
+<div id="message"></div>
+
+</div>
+
+<audio id="song1" src="snowman.mp3" loop></audio>
+<audio id="song2" src="oten.mp3" loop></audio>
+
+<script>
+
+/* mini məktub mesajları */
+
+const miniMessages=[
+"Sən dünyanı daha gözəl edən insansan 💖",
+"Hər günün ilham və sevgi ilə dolsun 🌸",
+"Həmişə gülərüz qalasan 😄",
+"Sən xüsusi və dəyərlisən 🌷",
+"Hər anını sevinclə yaşa 💐",
+"Uğurlar hər zaman səninlə olsun ✨"
+]
+
+/* məktubları yarat */
+
+for(let i=0;i<10;i++){
+
+let letter=document.createElement("div")
+letter.className="letter"
+letter.innerHTML="📩"
+
+letter.style.top=Math.random()*100+"vh"
+letter.style.left=Math.random()*100+"vw"
+
+letter.onclick=function(){
+
+let msg=document.createElement("div")
+msg.className="popup"
+
+msg.innerText=miniMessages[Math.floor(Math.random()*miniMessages.length)]
+
+msg.style.left=this.offsetLeft+"px"
+msg.style.top=this.offsetTop+"px"
+
+document.body.appendChild(msg)
+
+setTimeout(()=>msg.remove(),3000)
+
+}
+
+document.body.appendChild(letter)
+
+}
+
+/* typing mesaj */
+
+let currentAudio=null
+
+function generate(){
+
+let name=document.getElementById("name").value
+let type=document.getElementById("type").value
+
+if(name==""){
+alert("Adını yaz 🙂")
+return
+}
+
+if(currentAudio){
+currentAudio.pause()
+currentAudio.currentTime=0
+}
+
+currentAudio=(type=="friend")?song1:song2
+currentAudio.play()
+
+let text=""
+
+if(type=="friend"){
+
+text=`🌸 ${name}, 8 Martın mübarək!
+
+Bu gün qadınların həyatdakı dəyəri və önəmi xatırlanır. 
+
+Hər günün uğur və xoşbəxtliklə dolsun.
+
+Sənin yolunda olan insanlar sənə sevgi və anlayış versin.
+
+Unutma, sən xüsusi və qiymətlisən.`
+
+}
+
+else{
+
+text=`🌹 ${name}, 8 Martın mübarək!
+
+Bu gün qadınların dəyəri və həyatda rolunu qeyd edən xüsusi bir gündür.
+
+Ümid edirəm ki gələcək günlərin uğur və xoşbəxtliklə dolu olacaq.
+
+Həyatın hər addımı gözəl xatirələrlə dolsun.`
+
+}
+
+typeWriter(text)
+
+}
+
+function typeWriter(text){
+
+let i=0
+let box=document.getElementById("message")
+box.innerHTML=""
+
+function write(){
+
+if(i<text.length){
+
+if(text[i]=="\n") box.innerHTML+="<br>"
+else box.innerHTML+=text[i]
+
+i++
+setTimeout(write,25)
+
+}
+
+}
+
+write()
+
+}
+
+/* ürəklər */
+
+setInterval(()=>{
+
+let h=document.createElement("div")
+h.className="heart"
+h.innerHTML="💖"
+
+h.style.left=Math.random()*100+"vw"
+h.style.fontSize=(20+Math.random()*20)+"px"
+
+document.body.appendChild(h)
+
+setTimeout(()=>h.remove(),6000)
+
+},400)
+
+/* güllər */
+
+setInterval(()=>{
+
+let f=document.createElement("div")
+f.className="flower"
+
+let arr=["🌸","🌹","🌷","💐"]
+
+f.innerHTML=arr[Math.floor(Math.random()*arr.length)]
+
+f.style.left=Math.random()*100+"vw"
+f.style.animationDuration=(5+Math.random()*5)+"s"
+
+document.body.appendChild(f)
+
+setTimeout(()=>f.remove(),8000)
+
+},600)
+
+/* mouse sparkle */
+
+document.addEventListener("mousemove",e=>{
+
+let s=document.createElement("div")
+s.className="sparkle"
+s.innerHTML="✨"
+
+s.style.left=e.clientX+"px"
+s.style.top=e.clientY+"px"
+
+document.body.appendChild(s)
+
+setTimeout(()=>s.remove(),800)
+
+})
+
+</script>
+
+</body>
+</html>
