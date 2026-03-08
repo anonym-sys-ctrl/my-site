@@ -5,7 +5,6 @@
 <title>8 Mart Təbriki</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -13,6 +12,8 @@ background:linear-gradient(120deg,#ff5fa2,#ffc3a0,#ff6fd8,#ffb6e6,#ffa0c0,#ff9a9
 background-size:600% 600%;
 animation:bgmove 20s infinite alternate;
 overflow-x:hidden;
+overflow-y:auto;
+scroll-behavior:auto;
 }
 
 @keyframes bgmove{
@@ -32,14 +33,15 @@ text-shadow:0 0 15px rgba(0,0,0,0.4);
 .card{
 background:white;
 margin:auto;
-margin-top:80px;
+margin-top:100px;
 max-width:540px;
 padding:50px;
 border-radius:25px;
 box-shadow:0 25px 70px rgba(0,0,0,0.4);
+transform:scale(0);
 animation:open 1s forwards;
 position:relative;
-z-index:10;
+z-index:10; /* məktublardan üst */
 }
 
 @keyframes open{
@@ -79,41 +81,13 @@ margin-top:30px;
 font-size:18px;
 line-height:1.8;
 min-height:200px;
-}
-
-/* məktublar */
-
-.letter{
-position:absolute;
-font-size:36px;
-cursor:pointer;
-transition:0.3s;
-}
-
-.letter:hover{
-transform:scale(1.3);
-}
-
-/* popup */
-
-.popup{
-position:absolute;
-background:white;
-padding:12px;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
-animation:pop .4s;
-}
-
-@keyframes pop{
-from{transform:scale(.5);opacity:0}
-to{transform:scale(1);opacity:1}
+position:relative;
+z-index:10; /* məktublardan üst */
 }
 
 /* ürəklər */
-
 .heart{
-position:fixed;
+position:absolute;
 animation:float 6s linear infinite;
 }
 
@@ -123,32 +97,25 @@ animation:float 6s linear infinite;
 }
 
 /* güllər */
-
 .flower{
-position:fixed;
-top:-20px;
-font-size:20px;
-animation:fall linear infinite;
+position:absolute;
+animation:fall 8s linear infinite;
 }
 
 @keyframes fall{
-to{transform:translateY(110vh) rotate(360deg)}
+0%{transform:translateY(-100px) rotate(0)}
+100%{transform:translateY(110vh) rotate(360deg)}
 }
 
-/* mouse sparkle */
-
-.sparkle{
-position:fixed;
-pointer-events:none;
-font-size:14px;
-animation:spark 0.8s linear forwards;
+.section{
+height:400px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+color:white;
+text-shadow:0 0 10px black;
 }
-
-@keyframes spark{
-0%{opacity:1; transform:scale(1);}
-100%{opacity:0; transform:scale(2);}
-}
-
 </style>
 </head>
 
@@ -159,206 +126,201 @@ animation:spark 0.8s linear forwards;
 </div>
 
 <div class="card">
-
 <p>Adını yaz:</p>
-
 <input type="text" id="name" placeholder="Adını yaz">
-
 <br>
-
 <select id="type">
 <option value="friend">Just Friend</option>
 <option value="classmate">Sinif yoldaşı</option>
 </select>
-
 <br>
-
 <button onclick="generate()">Təbriki göstər</button>
-
 <div id="message"></div>
-
 </div>
+
+<div class="section">🌷 🌸 🌹 💐</div>
 
 <audio id="song1" src="snowman.mp3" loop></audio>
 <audio id="song2" src="oten.mp3" loop></audio>
-
 <script>
+// Məktub mesajları
+const miniMessages = [
+  "Sən dünyanı daha gözəl edən insansan 💖",
+  "Hər günün ilham və sevgi ilə dolsun 🌸",
+  "Həmişə gülərüz qalasan 😄",
+  "Sən xüsusi və dəyərlisən, bunu heç unutma 🌷",
+  "Hər anını sevinclə yaşa 💐",
+  "Uğurlar hər zaman səninlə olsun ✨",
+  "Həyatına sevgi və xoşbəxtlik qat 💌",
+  "Sənin varlığın çox qiymətlidir 🌟"
+];
 
-/* mini məktub mesajları */
+// Animasiya növləri
+const animTypes = ["slideDown","slideLeft","fadeIn","scaleUp"];
 
-const miniMessages=[
-"Sən dünyanı daha gözəl edən insansan 💖",
-"Hər günün ilham və sevgi ilə dolsun 🌸",
-"Həmişə gülərüz qalasan 😄",
-"Sən xüsusi və dəyərlisən 🌷",
-"Hər anını sevinclə yaşa 💐",
-"Uğurlar hər zaman səninlə olsun ✨"
-]
+// Məktub ikonlarını yaratmaq
+function createLetterIcons(){
+  for(let i=0;i<10;i++){ // 10 məktub
+    let letter = document.createElement("div");
+    letter.innerHTML="📩";
+    letter.style.position="absolute";
+    letter.style.fontSize="40px";
+    letter.style.cursor="pointer";
+    letter.style.transition="transform 0.3s";
 
-/* məktubları yarat */
+    // Random mövqe — saytın istənilən yeri, mətni örtməməsi üçün kartın sahəsini yoxlayırıq
+    let top = Math.random() * (window.innerHeight - 200) + 50; 
+    let left = Math.random() * (window.innerWidth - 50);
+    letter.style.top = top + "px";
+    letter.style.left = left + "px";
 
-for(let i=0;i<10;i++){
+    // hover effekti
+    letter.onmouseover = ()=>{ letter.style.transform="scale(1.3)"; };
+    letter.onmouseout = ()=>{ letter.style.transform="scale(1)"; };
 
-let letter=document.createElement("div")
-letter.className="letter"
-letter.innerHTML="📩"
+    // klik effekti
+    letter.onclick = ()=>{ showAnimatedMessage(letter); };
 
-letter.style.top=Math.random()*100+"vh"
-letter.style.left=Math.random()*100+"vw"
-
-letter.onclick=function(){
-
-let msg=document.createElement("div")
-msg.className="popup"
-
-msg.innerText=miniMessages[Math.floor(Math.random()*miniMessages.length)]
-
-msg.style.left=this.offsetLeft+"px"
-msg.style.top=this.offsetTop+"px"
-
-document.body.appendChild(msg)
-
-setTimeout(()=>msg.remove(),3000)
-
+    document.body.appendChild(letter);
+  }
 }
 
-document.body.appendChild(letter)
+// Məktub mesajını animasiyalı göstər
+function showAnimatedMessage(letter){
+  // Əvvəlki popup varsa sil
+  let existing = document.getElementById("popup-msg");
+  if(existing) existing.remove();
 
+  // Yeni mesaj
+  let msg = miniMessages[Math.floor(Math.random()*miniMessages.length)];
+  let popup = document.createElement("div");
+  popup.id="popup-msg";
+  popup.innerHTML=msg;
+  popup.style.position="absolute";
+  popup.style.left = (parseInt(letter.style.left) - 50) + "px";
+  popup.style.top = (parseInt(letter.style.top) - 50) + "px";
+  popup.style.padding="15px 20px";
+  popup.style.background="rgba(255,255,255,0.95)";
+  popup.style.border="2px solid #ff2f7a";
+  popup.style.borderRadius="12px";
+  popup.style.color="#ff0066";
+  popup.style.fontWeight="bold";
+  popup.style.boxShadow="0 5px 20px rgba(0,0,0,0.3)";
+  popup.style.zIndex="20";
+  popup.style.opacity="0";
+
+  document.body.appendChild(popup);
+
+  // Random animasiya
+  let anim = animTypes[Math.floor(Math.random()*animTypes.length)];
+  if(anim=="slideDown"){
+    popup.style.transform="translateY(-50px)";
+    popup.style.transition="all 0.5s ease-out";
+    setTimeout(()=>{ popup.style.opacity="1"; popup.style.transform="translateY(0)"; },50);
+  } else if(anim=="slideLeft"){
+    popup.style.transform="translateX(50px)";
+    popup.style.transition="all 0.5s ease-out";
+    setTimeout(()=>{ popup.style.opacity="1"; popup.style.transform="translateX(0)"; },50);
+  } else if(anim=="fadeIn"){
+    popup.style.transition="opacity 0.7s ease-in";
+    setTimeout(()=>{ popup.style.opacity="1"; },50);
+  } else if(anim=="scaleUp"){
+    popup.style.transform="scale(0.5)";
+    popup.style.transition="all 0.5s ease-out";
+    setTimeout(()=>{ popup.style.opacity="1"; popup.style.transform="scale(1)"; },50);
+  }
+
+  // 4 saniyə sonra yox olsun
+  setTimeout(()=>popup.remove(),4000);
 }
 
-/* typing mesaj */
+// İkonları sayt açıldığında yarat
+createLetterIcons();
 
-let currentAudio=null
+// Audio idarəsi
+let currentAudio = null;
 
+// Təbrik yaratmaq funksiyası
 function generate(){
+    let name = document.getElementById("name").value;
+    let type = document.getElementById("type").value;
+    if(name==""){
+        alert("Adını yaz 🙂");
+        return;
+    }
 
-let name=document.getElementById("name").value
-let type=document.getElementById("type").value
+    // Audio dəyişimi
+    if(currentAudio){
+        currentAudio.pause();
+        currentAudio.currentTime=0;
+    }
+    currentAudio = (type=="friend") ? document.getElementById("song1") : document.getElementById("song2");
+    currentAudio.play();
 
-if(name==""){
-alert("Adını yaz 🙂")
-return
+    // Uzun təbrik mətni
+    let text = "";
+    if(type=="friend"){
+        text = `🌸 ${name}, 8 Martın mübarək!\n\n`+
+        `Bu gün qadınların həyatdakı dəyəri və önəmi xatırlanır. Sənə uzun bir səmimi təbrik yazmaq istədim.\n\n`+
+        `Hər günün uğur və xoşbəxtliklə dolsun. Qarşına çıxan hər fürsət sənin üçün bir sevinc və yeni bir hekayə olsun.\n\n`+
+        `Sənin yolunda olan insanlar sənə sevgi və anlayış versin. Həyatın hər addımı gözəl xatirələrlə dolu olsun.\n\n`+
+        `Bu gün sadəcə bayram deyil, həm də sənin dəyərinin qeyd olunduğu bir gündür. Gülümsə, ürəyini aç və günün dadını çıxar.\n\n`+
+        `Hər anını dəyərləndir və bil ki, sənin xoşbəxtliyinə sevinclə baxan insanlar var.\n\n`+
+        `Unutma, sən xüsusi və qiymətlisən. 8 Martın mübarək! 💖🌷\n\n`;
+    } else {
+        text = `🌹 ${name}, 8 Martın mübarək!\n\n`+
+        `Bu gün qadınların dəyəri və həyatda rolunu qeyd edən xüsusi bir gündür. Mən də sənə uzun və səmimi bir təbrik yazmaq istədim.\n\n`+
+        `Ümid edirəm ki, gələcək günlərin xoşbəxtlik, uğur və gözəl anlarla dolu olsun.\n\n`+
+        `Həyat uzun bir yoldur, amma hər addımda sənə uğurlar və yaddaqalan xatirələr gətirsin.\n\n`+
+        `Bu gün sadəcə bayram deyil, həm də sənin dəyərinin xatırlandığı gündür. Dincəl, gülümsə və bu günün hər anının dadını çıxar.\n\n`+
+        `Sən xüsusi və qiymətlisən, buna görə bu təbrik sənə bir az sevinc və xoşbəxtlik gətirsin.\n\n`+
+        `8 Martın mübarək! 🌸💐\n\n`;
+    }
+
+    typeWriter(text);
 }
 
-if(currentAudio){
-currentAudio.pause()
-currentAudio.currentTime=0
-}
-
-currentAudio=(type=="friend")?song1:song2
-currentAudio.play()
-
-let text=""
-
-if(type=="friend"){
-
-text=`🌸 ${name}, 8 Martın mübarək!
-
-Bu gün qadınların həyatdakı dəyəri və önəmi xatırlanır. 
-
-Hər günün uğur və xoşbəxtliklə dolsun.
-
-Sənin yolunda olan insanlar sənə sevgi və anlayış versin.
-
-Unutma, sən xüsusi və qiymətlisən.`
-
-}
-
-else{
-
-text=`🌹 ${name}, 8 Martın mübarək!
-
-Bu gün qadınların dəyəri və həyatda rolunu qeyd edən xüsusi bir gündür.
-
-Ümid edirəm ki gələcək günlərin uğur və xoşbəxtliklə dolu olacaq.
-
-Həyatın hər addımı gözəl xatirələrlə dolsun.`
-
-}
-
-typeWriter(text)
-
-}
-
+// Typing animasiyası
 function typeWriter(text){
+    let i=0;
+    let speed=25;
+    let box=document.getElementById("message");
+    box.innerHTML="";
 
-let i=0
-let box=document.getElementById("message")
-box.innerHTML=""
-
-function write(){
-
-if(i<text.length){
-
-if(text[i]=="\n") box.innerHTML+="<br>"
-else box.innerHTML+=text[i]
-
-i++
-setTimeout(write,25)
-
+    function write(){
+        if(i<text.length){
+            if(text[i]=="\n"){
+                box.innerHTML+="<br>";
+            } else {
+                box.innerHTML+=text[i];
+            }
+            i++;
+            setTimeout(write,speed);
+        }
+    }
+    write();
 }
 
-}
-
-write()
-
-}
-
-/* ürəklər */
-
+// Ürəklər
 setInterval(()=>{
+    let h=document.createElement("div");
+    h.className="heart";
+    h.innerHTML="💖";
+    h.style.left=Math.random()*100+"vw";
+    h.style.fontSize=(20+Math.random()*20)+"px";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),6000);
+},400);
 
-let h=document.createElement("div")
-h.className="heart"
-h.innerHTML="💖"
-
-h.style.left=Math.random()*100+"vw"
-h.style.fontSize=(20+Math.random()*20)+"px"
-
-document.body.appendChild(h)
-
-setTimeout(()=>h.remove(),6000)
-
-},400)
-
-/* güllər */
-
+// Güllər
 setInterval(()=>{
-
-let f=document.createElement("div")
-f.className="flower"
-
-let arr=["🌸","🌹","🌷","💐"]
-
-f.innerHTML=arr[Math.floor(Math.random()*arr.length)]
-
-f.style.left=Math.random()*100+"vw"
-f.style.animationDuration=(5+Math.random()*5)+"s"
-
-document.body.appendChild(f)
-
-setTimeout(()=>f.remove(),8000)
-
-},600)
-
-/* mouse sparkle */
-
-document.addEventListener("mousemove",e=>{
-
-let s=document.createElement("div")
-s.className="sparkle"
-s.innerHTML="✨"
-
-s.style.left=e.clientX+"px"
-s.style.top=e.clientY+"px"
-
-document.body.appendChild(s)
-
-setTimeout(()=>s.remove(),800)
-
-})
-
+    let f=document.createElement("div");
+    f.className="flower";
+    let arr=["🌸","🌹","🌷","💐"];
+    f.innerHTML=arr[Math.floor(Math.random()*arr.length)];
+    f.style.left=Math.random()*100+"vw";
+    document.body.appendChild(f);
+    setTimeout(()=>f.remove(),8000);
+},600);
 </script>
-
 </body>
-</html>
